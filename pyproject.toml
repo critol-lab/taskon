@@ -1,23 +1,23 @@
 [tool.poetry]
 name = "taskon"
-version = "0.1.0"
-description = "TaskOn automation harness"
-authors = ["you <you@example.com>"]
+version = "0.5.0"
+description = ""
+authors = ["critol-lab <noreply@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-loguru = "^0.7.2"
-aiohttp = "^3.9.5"
-pydantic = "^2.7.0"
+questionary = "^2.0.0"
+tqdm = "^4.66.1"
+loguru = "^0.7.0"
+pydantic = "^2.2.1"
+better-web3 = "^3.0.5"
+better-automation = "^0.4.2"
+better-proxy = "^0.2.0"
+pandas = "^2.0.3"
 python-dotenv = "^1.0.1"
-questionary = "^2.0.1"
-tqdm = "^4.66.4"
+aiohttp = "^3.9.5"
 web3 = "^6.20.1"
-playwright = "^1.46.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
 
 [build-system]
 requires = ["poetry-core"]
