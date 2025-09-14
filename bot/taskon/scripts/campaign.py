@@ -98,13 +98,21 @@ async def _enter_campaign_by_account(
             g_captcha_response = None
             if campaign_info.recaptcha:
                 url = f'https://taskon.xyz/campaign/detail/{campaign_id}'
-                g_captcha_response = await anticaptcha.recaptcha_v2_with_proxy(
-                    url,
-                    SITE_KEY,
-                    is_invisible=True,
-                    proxy=account.proxy.as_url,
-                    useragent=account.useragent,
-                )
+                if account.proxy:
+                    g_captcha_response = await anticaptcha.recaptcha_v2_with_proxy(
+                        url,
+                        SITE_KEY,
+                        is_invisible=True,
+                        proxy=account.proxy.as_url,
+                        useragent=account.useragent,
+                    )
+                else:
+                    g_captcha_response = await anticaptcha.recaptcha_v2(
+                        url,
+                        SITE_KEY,
+                        is_invisible=True,
+                        useragent=account.useragent,
+                    )
             campaign_is_submitted = await taskon.submit_campaign(campaign_id, g_captcha_response)
             if campaign_is_submitted:
                 logger.success(f"{account} (campaign_id={campaign_id}) Campaign submited!")

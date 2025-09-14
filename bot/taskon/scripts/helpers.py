@@ -87,13 +87,16 @@ async def process_accounts_with_session(
         fn: Callable,
         max_tasks: int = None,
 ):
-    proxy_to_accounts: dict[Proxy: list[accounts]] = {}
+    proxy_to_accounts: dict[Proxy | None: list[accounts]] = {}
     for account in accounts:
-        if account.proxy not in proxy_to_accounts:
-            proxy_to_accounts[account.proxy] = []
-        proxy_to_accounts[account.proxy].append(account)
-    tasks = [_process_accounts_with_session(accounts, fn, ignore_errors=CONFIG.IGNORE_ERRORS)
-             for accounts in proxy_to_accounts.values()]
+        key = account.proxy if account.proxy else None
+        if key not in proxy_to_accounts:
+            proxy_to_accounts[key] = []
+        proxy_to_accounts[key].append(account)
+    tasks = [
+        _process_accounts_with_session(group, fn, proxy=proxy if proxy else None, ignore_errors=CONFIG.IGNORE_ERRORS)
+        for proxy, group in proxy_to_accounts.items()
+    ]
     max_tasks = max_tasks or CONFIG.MAX_TASKS
     await bounded_gather(tasks, max_tasks)
 

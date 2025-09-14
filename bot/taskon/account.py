@@ -15,7 +15,7 @@ from bot.logger import logger
 from .models import UserInfo
 
 TABLE_COLUMNS = [
-    "(required) Proxy",
+    "(optional) Proxy",
     "(required) Private key",
     "(optional) Invite code",
     "(optional) Discord token",
@@ -127,8 +127,10 @@ class TaskonAccount:
             account = TaskonAccount(wallet, number=i+1)
             account.csv_filepath = csv_filepath
 
-            proxy = row.get("(required) Proxy")
-            if proxy: account.proxy = Proxy.from_str(proxy)
+            # Proxy is optional. Support both legacy "(required) Proxy" and new "(optional) Proxy" columns
+            proxy = row.get("(optional) Proxy") or row.get("(required) Proxy")
+            if proxy:
+                account.proxy = Proxy.from_str(proxy)
 
             invite_code = row.get("(optional) Invite code")
             account.invite_code = invite_code or CONFIG.DEFAULT_INVITE_CODE

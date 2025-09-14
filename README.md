@@ -1,103 +1,51 @@
-# Taskon script
-[![Telegram channel](https://img.shields.io/endpoint?url=https://runkit.io/damiankrawczyk/telegram-badge/branches/master?url=https://t.me/cum_insider)](https://t.me/cum_insider)
+# TaskOn Automation (English)
 
-- [Запуск под Windows](#запуск-под-windows)
-- [Запуск под Ubuntu](#запуск-под-ubuntu)
-- [Работа со скриптом](#работа-со-скриптом)
+This repository automates authorized flows on TaskOn: wallet auth/invite, binding Twitter/Discord, entering campaigns, checking winners, and claiming CAPs. It mirrors the original reference structure, with improvements and optional proxies.
 
-Скрипт для прохождения компаний Taskon. Модули:
-- Аутентификация и инвайт аккаунта
-- Привязка Discord
-- Привязка Twitter
-- Прохождение компании
-- Просмотр результатов компании
+- English quickstart (Windows/Linux)
+- Configuration and accounts CSV format (proxy optional)
+- Running modules (Auth, Bind, Enter campaign, Check winners, Claim CAPs)
 
 
-## Запуск под Windows
-- Установите [Python 3.11](https://www.python.org/downloads/windows/). Не забудьте поставить галочку напротив "Add Python to PATH".
-- Установите пакетный менеджер [Poetry](https://python-poetry.org/docs/) вручную по [этой инструкции](https://teletype.in/@alenkimov/poetry).
-- Установите MSVC и Пакет SDK для Windows по [этой инструкции](https://teletype.in/@alenkimov/web3-installation-error). Без этого при попытке установить библиотеку web3 будет возникать ошибка "Microsoft Visual C++ 14.0 or greater is required".
-- Установите [git](https://git-scm.com/download/win). Это позволит с легкостью получать обновления скрипта командой `git pull`
-- Откройте консоль в удобном месте...
-  - Склонируйте (или [скачайте](https://github.com/alenkimov/taskon/archive/refs/heads/main.zip)) этот репозиторий:
-    ```bash
-    git clone https://github.com/AlenKimov/taskon
-    ```
-  - Перейдите в папку проекта:
-    ```bash
-    cd taskon
-    ```
-  - Установите требуемые зависимости следующей командой или запуском файла `INSTALL.bat`:
-    ```bash
-    poetry install
-    ```
-  - Запустите скрипт следующей командой или запуском файла `START.bat`:
-    ```bash
-    poetry run python start.py
-    ```
+## Prerequisites
+- Python 3.11
+- Git
+- Poetry (recommended): https://python-poetry.org/docs/
 
 
-## Запуск под Ubuntu
-- Обновите систему:
+## Installation
 ```bash
-sudo apt update && sudo apt upgrade -y
-```
-- Установите [git](https://git-scm.com/download/linux) и screen:
-```bash
-sudo apt install screen git -y
-```
-- Установите Python 3.11 и зависимости для библиотеки web3:
-```bash
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt install python3.11 python3.11-dev build-essential libssl-dev libffi-dev -y
-ln -s /usr/bin/python3.11/usr/bin/python
-```
-- Установите [Poetry](https://python-poetry.org/docs/):
-```bash
-curl -sSL https://install.python-poetry.org | python -
-export PATH="/root/.local/bin:$PATH"
-```
-- Склонируйте этот репозиторий:
-```bash
-git clone https://github.com/alenkimov/taskon
-```
-- Перейдите в папку проекта:
-```bash
+git clone https://github.com/critol-lab/taskon
 cd taskon
-```
-- Установите требуемые библиотеки:
-```bash
 poetry install
 ```
-- Запустите скрипт:
+
+On Windows you can run `INSTALL.bat` instead of the last command.
+
+
+## First run
+On the first run the app will create directories `input/` and `log/` and write `config/config.toml` from defaults.
+
+Start the app:
 ```bash
-poetry run python start.py
+poetry run python main.py
 ```
+On Windows you can use `START.bat`.
 
 
-## Работа со скриптом
-После первого запуска в папке проекта появятся новые папки: `input` и `log`,
-а в папке `config` появится файл `config.toml`.
-
-### Папка `config`, конфигурация скрипта
-Файлы конфигурации (`config.toml`) находятся в папке `config`.
-
-Основной файл конфигурации это `config.toml`. Вот самые важные настройки, о которых стоит знать:
-- `HIDE_SECRETS`: Скрывает чувствительные данные. Включено по умолчанию.
-- `DEFAULT_INVITE_CODE`: Пригласительный код по умолчанию.
-Если при заполнении таблицы опциональное значение `(optional) Invite code`
-отсутствует, то будет использован пригласительный код по умолчанию.
-- `ANTICAPTCHA_API_KEY`: API ключ [anticaptcha](http://getcaptchasolution.com/tmb2cervod)
-- `MAX_TASKS`: Глобальный ограничитель.
-От этого ограничителя зависит максимальное количество одновременно выполняемых тасков.
-По умолчанию равен 5. Установка большего значения может привести к ошибкам.
-- `DELAY_RANGE`: Минимальная и максимальная задержка между аккаунтами на одних и тех же прокси.
-По умолчанию от 60 до 120 сек.
+## Configuration (`config/config.toml`)
+Key options:
+- `HIDE_SECRETS`: Hide sensitive output in logs (enabled by default).
+- `DEFAULT_INVITE_CODE`: Default invite code used when not specified in CSV.
+- `ANTICAPTCHA_API_KEY`: API key for Anticaptcha if a campaign requires ReCaptcha.
+- `MAX_TASKS`: Global concurrency limit (default 5).
+- `DELAY_RANGE`: Min/max delay between accounts sharing the same proxy (default 60–120 sec). When proxies are not used, delay still applies per group.
 
 
-### Папка `input`, таблица с данными об аккаунте
-В пустой папке `input` создается таблица по умолчанию, содержащая следующие поля для заполнения:
-- (required) Proxy
+## Accounts CSV (`input/accounts.csv`)
+When the app starts, it creates `input/accounts.csv` with the following columns. Proxy is now optional.
+
+- (optional) Proxy
 - (required) Private key
 - (optional) Invite code
 - (optional) Discord token
@@ -106,14 +54,36 @@ poetry run python start.py
 - (auto) Site token
 - (auto) Discord username
 - (auto) Twitter username
+- (auto) Invite code
 
-Поля с тегом `(required)` являются обязательными, в то время как тег `(optional)`
-обозначает опциональное поле. Поля с тегом `(auto)` заполняются скриптом автоматически
-во время работы.
-
-- Колонки таблицы **можно** менять местами, но **нельзя** переименовывать.
-- **Можно** создавать собственные колонки.
+Notes:
+- Columns may be reordered but must not be renamed.
+- You may add your own columns; the app ignores unknown columns.
+- For backward compatibility, the loader still supports a legacy column named `(required) Proxy`. If present, it will be used; otherwise `(optional) Proxy` can be empty.
 
 
-### Папка `log`
-В папку `log` записывается все, что происходит в консоли.
+## Using the app (Modules)
+After loading `accounts.csv`, choose a module:
+
+- Auth and Invite: Requests a TaskOn challenge, signs with wallet, submits invite if provided, and stores the auth token.
+- Bind Discords / Bind Twitters: Binds SNS using provided tokens.
+- Enter campaign: Solves tasks it can, then submits the campaign. If ReCaptcha is required, it uses Anticaptcha. If no proxy is provided for an account, captcha is solved without proxy.
+- Check winners: Lists winners for a campaign.
+- Claim CAPs: Claims campaign NFT rewards where available.
+
+
+## Proxies (optional)
+- If `(optional) Proxy` is set for an account, that account’s HTTP traffic and ReCaptcha solving will use that proxy.
+- If not set, the account runs directly without a proxy. ReCaptcha (when required) will be solved without proxy.
+- Accounts are grouped by their proxy (including “no proxy” group) for rate limiting and delays.
+
+
+## Troubleshooting
+- Ensure your private keys are valid and properly formatted (0x-prefixed hex).
+- If Anticaptcha is needed, fund your key and set `ANTICAPTCHA_API_KEY` in `config/config.toml`.
+- If Twitter/Discord binding is required, fill the respective tokens in the CSV.
+- For large batches, tune `MAX_TASKS` and `DELAY_RANGE` to avoid rate limits.
+
+
+## License
+This repository mirrors and adapts an existing open-source structure for interoperability. Review upstream licenses as applicable.
