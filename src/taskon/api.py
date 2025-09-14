@@ -19,6 +19,22 @@ class UserInfo(BaseModel):
     id: int
     user_name: str
 
+class TaskInfo(BaseModel):
+    id: int
+    template_id: str
+    params: str | None = None
+
+class CampaignInfo(BaseModel):
+    id: int
+    name: str
+    tasks: list[TaskInfo] | None = None
+
+class WinnerInfo(BaseModel):
+    user_id: int
+    user_address: str
+    user_name: str
+    amount: str | None = None
+
 class TaskonAPI:
     def __init__(self, session: aiohttp.ClientSession, auth_token: str | None = None):
         self.session = session
@@ -59,6 +75,66 @@ class TaskonAPI:
         async with self.session.post(url, headers=self._headers) as r:
             result = await self._handle(r)
             return UserInfo.model_validate(result)
+
+    async def request_campaign_info(self, campaign_id: int) -> CampaignInfo:
+        url = f'{TASKON_BASE_URL}/v1/getCampaignInfo'
+        data = str(campaign_id)
+        async with self.session.post(url, data=data, headers=self._headers) as r:
+            result = await self._handle(r)
+            return CampaignInfo.model_validate(result)
+
+    async def request_campaign_status_info(self, campaign_id: int) -> dict:
+        url = f'{TASKON_BASE_URL}/v1/getCampaignStatusInfo'
+        payload = {'id': campaign_id}
+        async with self.session.post(url, json=payload, headers=self._headers) as r:
+            return await self._handle(r)
+
+    async def request_user_campaign_status(self, campaign_id: int) -> dict:
+        url = f'{TASKON_BASE_URL}/v1/getUserCampaignStatus'
+        data = str(campaign_id)
+        async with self.session.post(url, data=data, headers=self._headers) as r:
+            return await self._handle(r)
+
+    async def check_user_campaign_eligibility(self, campaign_id: int) -> bool:
+        url = f'{TASKON_BASE_URL}/v1/checkUserCampaignEligibility'
+        data = str(campaign_id)
+        async with self.session.post(url, data=data, headers=self._headers) as r:
+            result = await self._handle(r)
+            return bool(result.get('result'))
+
+    async def request_campaign_winners(self, campaign_id: int, page: int = 0, size: int = 50) -> list[WinnerInfo]:
+        url = f'{TASKON_BASE_URL}/v1/getCampaignWinners'
+        payload = {"id": campaign_id, "page": {"page_no": page, "size": size}}
+        async with self.session.post(url, json=payload, headers=self._headers) as r:
+            result = await self._handle(r)
+            data = result.get('data') or []
+            return [WinnerInfo.model_validate(w) for w in data]
+
+    async def submit_task(self, task_id: int, value: str | None = None, pre_submit: bool = False) -> bool:
+        url = f'{TASKON_BASE_URL}/v1/submitTask'
+        payload = {"task_id": task_id, "value": value or "", "pre_submit": pre_submit}
+        async with self.session.post(url, json=payload, headers=self._headers) as r:
+            return await self._handle(r)
+
+    async def submit_campaign(self, campaign_id: int, g_captcha_response: str | None = None) -> bool:
+        url = f'{TASKON_BASE_URL}/v1/submitCampaign'
+        payload = {"campaign_id": campaign_id, "auto_follow_owner": False}
+        if g_captcha_response:
+            payload["google_recaptcha"] = g_captcha_response
+        async with self.session.post(url, json=payload, headers=self._headers) as r:
+            return await self._handle(r)
+
+    async def bind_app(self, app_type: str, bind_code: str) -> None:
+        url = f"{TASKON_BASE_URL}/v1/bindSNS"
+        payload = {"sns_type": app_type, "token": bind_code}
+        async with self.session.post(url, json=payload, headers=self._headers) as r:
+            await self._handle(r)
+
+    async def bind_twitter(self, bind_code: str) -> None:
+        await self.bind_app("Twitter", bind_code)
+
+    async def bind_discord(self, bind_code: str) -> None:
+        await self.bind_app("Discord", bind_code)
 
 async def demo_auth_flow(session: aiohttp.ClientSession, address: str, sign_fn, invite_code: str | None = None) -> str:
     api = TaskonAPI(session)
