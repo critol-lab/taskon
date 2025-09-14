@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "taskon"
+version = "0.1.0"
+description = "TaskOn automation harness"
+authors = ["you <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+loguru = "^0.7.2"
+aiohttp = "^3.9.5"
+pydantic = "^2.7.0"
+python-dotenv = "^1.0.1"
+questionary = "^2.0.1"
+tqdm = "^4.66.4"
+web3 = "^6.20.1"
+playwright = "^1.46.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
